@@ -113,7 +113,7 @@ def make_window():
     icon = b'iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAH+UExURf/YAL2gAJB5AMysAP7XAG5dAAAAAAcFAEM4AHxpAPHMALKWACUfABQQAJiAAH9rAEA2AMurAO7JAFJFAMqrACQeACMdALWZAAsJAPbQAKGIAMipAKKJAJqCALebAGtaAAoIAD0zAG9eABgUAEs/AFVIAJV+AHhlAFFEABwXACchAMeoAOC9AKaMAGFSAOzHAAQDAPvUALGVAFlLANCwAN68ADAoAOfDAIl0ACojALOXALqdAGlYALibADcuAJZ/AJ6FAHZjANOyAFNGAA8MADEpAEQ5AAkHAHpnANi2AKyRAAYFAPzVAIBsAEo+AFBDAI95ABANANa1ACAbAPTOAPLMAOTBAE1BACwlABsWACskAEI3AFpMAHFfAIhzAMGjAGVVAAEAAEE3AGNTAKuQAPjSAH1pAB4ZAPPNAK2SAMCiAMWmAN27AIt1APXPACghACEbAL+hAA4LAFRHAHdkAJuDAMmqACYgAEk9AFxNAIFtAI54AI13AAwKAKqQAE9CANKxAKeNAObCAK6TAGxbANy6AHtoAMSmAD81AF1OANW0APnSAOPAAGZWAKmPAO3IAOXBAFhKADoxAOK/AO/KAGBRAIx2ABYSABEOAAUEAJJ7AGRUAHBeAHJgAJyEALmcAFdJAIZxANGxAKOKAAMCADsxACIcALaaAL6gAOG+AFD17/gAAAAJcEhZcwAADsMAAA7DAcdvqGQAAALDSURBVFhH7df5W0xhFAfwS3VHUkpMqQYZ00Ixxq5FIYxMaLFEUhTJMhGFyDItpkRMdtm3/9Lcc78z7oy7vvc+jx/M55fe855zvs/TU93ucAkJ/8acuUk4WSI5hed527zU+ajNSlsQzhOkZ+DGnIWIE2Rm4ZLdomxkibJxzWzxEiSBHfescnIRFLUUHTZ5SJHIR4tJAUKkHOixWIaMGMvRZJC0AhkxCtFlsBIRsZzoMlglJriKiktKxSNBl8FqMWCNcC4rX+sUS34dNVm4xYD1KDnPBqo3ojRsE63zm1EKtmzdxvPbURhWIQZWooSq6h04GZYhBtagNK9WDNyJ0rxdlLcblQXqKHAPKgvspcB9qMzzUh5fhdK8/ZRXfwCleT4KbEBlgYMUeAiVBQ5ToHW/hY2U14TKpOaWliOpFBj3h8zg6LHjcf843aWtJ062nSpoL0vGjBGnkSKro6nzzNkuTOrTjVVl585jVJcibCmrxaQ+PdhSdgGT+vRiS1FJMyb1uYg1RZcwqNNlrMlIv+K08f4+DEY04quSq9iWqLvWf73CK36ffz10bvBtOMkT36IHqgdvpty67RgSila05IXfk+/cxVkbvTOoj/uFkeF7qDTQ/7tMFPLuCyNh/Q9woeYhjao/+ztpRhDw4krRCD0JR1HJG6MscKXhVl5voTA0jkrBI0qKsvuCaMSZ8FTaacKt/qSepKEY9sdTT9CNeDo1bUOXz8OdglGMxXnWXZOT9XyC40Ij+Y6ZAdwKXmBRyUvMyXv1GocozYdUHwZ1msGaijcY1eUtllS9w7AO77GioRjjmnxY0CT9FK3CwKvHbD12VPg/YFiX4DjWFH0MYVSvTzKPZYkhjBkQUvnZTH/GkDGTPunnwD8G2zHA4EvDV6RE5Lo86DHq8gS+Rd6xOr4HfuDapODPntnysV+oEhIS/jsc9xvWwm7SqLETuAAAAABJRU5ErkJggg=='
 
 
-    window = sg.Window('psg-figlet', layout, resizable=True, finalize=True, right_click_menu=['_', ['Edit Me', 'Copy', 'Exit']], icon=icon)
+    window = sg.Window('psgfiglet', layout, resizable=True, finalize=True, right_click_menu=['_', ['Edit Me', 'Copy', 'File Location','Exit']], icon=icon)
 
     window['-COL R-'].expand(True, True, True)
     # window['-OUTPUT-'].expand(True, True, False)
@@ -131,7 +131,6 @@ def main():
     # sg.theme_input_text_color('white')
     window = make_window()
     selected_font = DEFAULT_FONT
-    LINE_LENGTH = 100
     MULTILINE_FONT = ('Courier', 12)
     fonts = pyfiglet.FigletFont.getFonts()
 
@@ -150,6 +149,8 @@ def main():
             window['-FONT-NAME-'].update(selected_font)
         elif event == 'Edit Me':
             sg.execute_editor(__file__)
+        elif event == 'File Location':
+            sg.popup_scrolled('This Python file is:', __file__)
         if event in ('Show', '-TEXT-TO-SHOW-', '-FONT-SIZE-', '-FONT-LIST-'):
             text = values['-TEXT-TO-SHOW-']
             if text.strip() == '':
@@ -164,6 +165,8 @@ def main():
             if change_theme(window.current_location()):
                 window.close()
                 window = make_window()
+
     window.close()
 
-
+if __name__ == '__main__':
+    main()

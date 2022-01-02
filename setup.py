@@ -1,12 +1,22 @@
 import setuptools
 
+def readme():
+    try:
+        with open('README.md') as f:
+            return f.read()
+    except IOError:
+        return ''
+
+
 setuptools.setup(
     name="psgfiglet",
-    version="1.7.0",
+    version="1.21.0",
     author="PySimpleGUI",
-    author_email="PySimpleGUI@PySimpleGUI.org",
-    description="Create Figlets using a PySimpleGUI GUI and pyfiglet",
-    url="https://github.com/PySimpleGUI/psg-figlet",
+    author_email="mike@PySimpleGUI.org",
+    description="Create Figlets using a PySimpleGUI GUI and pyfiglet. A PySimpleGUI Demo Program.",
+    long_description=readme(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/PySimpleGUI/psgfiglet",
     packages=['psgfiglet'],
     install_requires=['PySimpleGUI', 'pyfiglet'],
     classifiers=[
@@ -22,9 +32,10 @@ setuptools.setup(
         "Topic :: Multimedia :: Graphics",
         "Operating System :: OS Independent"
     ],
+    package_data={"":["*.ico"]},
     entry_points={
-        'console_scripts': [
-            'psgfiglet=psgfiglet.gui:main'
+        'gui_scripts': [
+            'psgfiglet=psgfiglet.psgfiglet:main'
         ],
     },
 )
