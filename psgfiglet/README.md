@@ -87,7 +87,6 @@ Once installed, launch psgfiglet by typing the following in your command line:
 
 A Figlet is a text based way to add large block text to your code or chats.  There are a variety of "Fonts" available that you'll find listed along the left side of the screen.
 
-![image](https://user-images.githubusercontent.com/46163555/136379651-58f474d7-fbfa-423f-a5da-162d6936d104.png)
 
 ## To use in your code
 
