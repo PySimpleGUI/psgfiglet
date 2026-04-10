@@ -1,11 +1,7 @@
 '''
-Copyright 2021-2024 PySimpleSoft, Inc. and/or its licensors. All rights reserved.
+Copyright 2021-2024 PySimpleGUI. All rights reserved.
 
-Redistribution, modification, or any other use of PySimpleGUI or any portion thereof is subject
-to the terms of the PySimpleGUI License Agreement available at https://eula.pysimplegui.com.
-
-You may not redistribute, modify or otherwise use PySimpleGUI or its contents except pursuant
-to the PySimpleGUI License Agreement.
+Licensed under LGPL3
 '''
 
 import PySimpleGUI as sg
@@ -13,13 +9,15 @@ import sys
 import os
 import pyfiglet
 
-version = '5.0.0'
+version = '6.0'
 __version__ = version.split()[0]
 
 """
 Changelog since last major release
 
 5.0.0   13-Feb-2024     Initial release with PSG 5     
+6.0     9-Apr-2026      Moved to LGPL3 license    
+                        Added "favorites" feature
 
 """
 
@@ -77,131 +75,6 @@ Changelog since last major release
 """
 
 
-'''
-M""M                     dP            dP dP                   
-M  M                     88            88 88                   
-M  M 88d888b. .d8888b. d8888P .d8888b. 88 88 .d8888b. 88d888b. 
-M  M 88'  `88 Y8ooooo.   88   88'  `88 88 88 88ooood8 88'  `88 
-M  M 88    88       88   88   88.  .88 88 88 88.  ... 88       
-M  M dP    dP `88888P'   dP   `88888P8 dP dP `88888P' dP       
-MMMM
-'''
-
-
-def pip_install_thread(window, sp):
-    window.write_event_value('-THREAD-', (sp, 'Install thread started'))
-    for line in sp.stdout:
-        oline = line.decode().rstrip()
-        window.write_event_value('-THREAD-', (sp, oline))
-
-
-
-def pip_install_latest():
-
-    pip_command = '-m pip install --upgrade --no-cache-dir PySimpleGUI>=5'
-
-    python_command = sys.executable  # always use the currently running interpreter to perform the pip!
-    if 'pythonw' in python_command:
-        python_command = python_command.replace('pythonw', 'python')
-
-    layout = [[sg.Text('Installing PySimpleGUI', font='_ 14')],
-              [sg.Multiline(s=(90, 15), k='-MLINE-', reroute_cprint=True, reroute_stdout=True, echo_stdout_stderr=True, write_only=True, expand_x=True, expand_y=True)],
-              [sg.Push(), sg.Button('Downloading...', k='-EXIT-'), sg.Sizegrip()]]
-
-    window = sg.Window('Pip Install PySimpleGUI Utilities', layout, finalize=True, keep_on_top=True, modal=True, disable_close=True, resizable=True, auto_save_location=True)
-
-    window.disable_debugger()
-
-    sg.cprint('Installing with the Python interpreter =', python_command, c='white on purple')
-
-    sp = sg.execute_command_subprocess(python_command, pip_command, pipe_output=True, wait=False)
-
-    window.start_thread(lambda: pip_install_thread(window, sp), end_key='-THREAD DONE-')
-
-    while True:
-        event, values = window.read()
-        if event == sg.WIN_CLOSED or (event == '-EXIT-' and window['-EXIT-'].ButtonText == 'Done'):
-            break
-        elif event == '-THREAD DONE-':
-            sg.cprint('\n')
-            show_package_version('PySimpleGUI')
-            sg.cprint('Done Installing PySimpleGUI.  Click Done and the program will restart.', c='white on red', font='default 12 italic')
-            window['-EXIT-'].update(text='Done', button_color='white on red')
-        elif event == '-THREAD-':
-            sg.cprint(values['-THREAD-'][1])
-
-    window.close()
-
-def suggest_upgrade_gui():
-    layout = [[sg.Image(sg.EMOJI_BASE64_HAPPY_GASP), sg.Text(f'PySimpleGUI 5+ Required', font='_ 15 bold')],
-              [sg.Text(f'PySimpleGUI 5+ required for this program to function correctly.')],
-              [sg.Text(f'You are running PySimpleGUI {sg.version}')],
-              [sg.Text('Would you like to upgrade to the latest version of PySimpleGUI now?')],
-              [sg.Push(), sg.Button('Upgrade', size=8, k='-UPGRADE-'), sg.Button('Cancel', size=8)]]
-
-    window = sg.Window(title=f'Newer version of PySimpleGUI required', layout=layout, font='_ 12')
-
-    while True:
-        event, values = window.read()
-
-        if event in (sg.WIN_CLOSED, 'Cancel'):
-            window.close()
-            break
-        elif event == '-UPGRADE-':
-            window.close()
-            pip_install_latest()
-            sg.execute_command_subprocess(sys.executable, __file__, pipe_output=True, wait=False)
-            break
-
-
-def make_str_pre_38(package):
-    return f"""
-import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-import pkg_resources
-try:
-    ver=pkg_resources.get_distribution("{package}").version.rstrip()
-except:
-    ver=' '
-print(ver, end='')
-"""
-
-def make_str(package):
-    return f"""
-import importlib.metadata
-
-try:
-    ver = importlib.metadata.version("{package}")
-except importlib.metadata.PackageNotFoundError:
-    ver = ' '
-print(ver, end='')
-"""
-
-
-def show_package_version(package):
-    """
-    Function that shows all versions of a package
-    """
-    interpreter = sg.execute_py_get_interpreter()
-    sg.cprint(f'{package} upgraded to ', end='', c='red')
-    # print(f'{interpreter}')
-
-    if sys.version_info.major == 3 and sys.version_info.minor in (6, 7):  # if running Python version 3.6 or 3.7
-        pstr = make_str_pre_38(package)
-    else:
-        pstr = make_str(package)
-    temp_file = os.path.join(os.path.dirname(__file__), 'temp_py.py')
-    with open(temp_file, 'w') as file:
-        file.write(pstr)
-    sg.execute_py_file(temp_file, interpreter_command=interpreter, pipe_output=True, wait=True)
-    os.remove(temp_file)
-
-
-
-def upgrade_check():
-    if not sg.version.startswith('5'):
-        suggest_upgrade_gui()
-        exit()
 
 
 '''
@@ -249,6 +122,9 @@ def make_window():
     LINE_LENGTH = 100
     MULTILINE_FONT = ('Courier', 12)
     fonts = pyfiglet.FigletFont.getFonts()
+    favorite_fonts = sg.user_settings_get_entry('-favorites-', [' '])
+    if len(favorite_fonts) == 0:
+        favorite_fonts = [' ']
     sg.theme_background_color(sg.theme_input_background_color())
     sg.theme_text_element_background_color(sg.theme_input_background_color())
     column_left = [[sg.Table(headings=['Font Name'], values=fonts, key='-FONT-LIST-',
@@ -258,7 +134,7 @@ def make_window():
     except Exception as e:
         mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', enable_events=True, focus=True)
 
-    column_right = [[sg.Text("Font Name:", size=(10, 1)), sg.Input(selected_font, size=(12, 1), key='-FONT-NAME-')],
+    column_right = [[sg.Combo(favorite_fonts, default_value=favorite_fonts[0], readonly=True, enable_events=True, k='-FAVORITES-', size=(max([len(f) for f in favorite_fonts]), len(favorite_fonts))), sg.Text("Font Name:", size=(10, 1)), sg.Input(selected_font, size=(12, 1), key='-FONT-NAME-'), sg.B('Add to favorites', k='-ADD TO FAVORITES-'), sg.B('Clear favorites', k='-CLEAR FAVORITES-')],
                     [sg.Text("Text:", size=(10, 1)), mline_input, sg.T('Font size for display below'),
                      sg.Combo(list(range(4, 20)), 12, enable_events=True, k='-FONT-SIZE-')],
                     [sg.Multiline(size=(LINE_LENGTH, 20), key='-OUTPUT-', border_width=0, font=MULTILINE_FONT, expand_x=True, expand_y=True, pad=(40, 40), )],
@@ -272,6 +148,10 @@ def make_window():
 
     icon = b'iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAH+UExURf/YAL2gAJB5AMysAP7XAG5dAAAAAAcFAEM4AHxpAPHMALKWACUfABQQAJiAAH9rAEA2AMurAO7JAFJFAMqrACQeACMdALWZAAsJAPbQAKGIAMipAKKJAJqCALebAGtaAAoIAD0zAG9eABgUAEs/AFVIAJV+AHhlAFFEABwXACchAMeoAOC9AKaMAGFSAOzHAAQDAPvUALGVAFlLANCwAN68ADAoAOfDAIl0ACojALOXALqdAGlYALibADcuAJZ/AJ6FAHZjANOyAFNGAA8MADEpAEQ5AAkHAHpnANi2AKyRAAYFAPzVAIBsAEo+AFBDAI95ABANANa1ACAbAPTOAPLMAOTBAE1BACwlABsWACskAEI3AFpMAHFfAIhzAMGjAGVVAAEAAEE3AGNTAKuQAPjSAH1pAB4ZAPPNAK2SAMCiAMWmAN27AIt1APXPACghACEbAL+hAA4LAFRHAHdkAJuDAMmqACYgAEk9AFxNAIFtAI54AI13AAwKAKqQAE9CANKxAKeNAObCAK6TAGxbANy6AHtoAMSmAD81AF1OANW0APnSAOPAAGZWAKmPAO3IAOXBAFhKADoxAOK/AO/KAGBRAIx2ABYSABEOAAUEAJJ7AGRUAHBeAHJgAJyEALmcAFdJAIZxANGxAKOKAAMCADsxACIcALaaAL6gAOG+AFD17/gAAAAJcEhZcwAADsMAAA7DAcdvqGQAAALDSURBVFhH7df5W0xhFAfwS3VHUkpMqQYZ00Ixxq5FIYxMaLFEUhTJMhGFyDItpkRMdtm3/9Lcc78z7oy7vvc+jx/M55fe855zvs/TU93ucAkJ/8acuUk4WSI5hed527zU+ajNSlsQzhOkZ+DGnIWIE2Rm4ZLdomxkibJxzWzxEiSBHfescnIRFLUUHTZ5SJHIR4tJAUKkHOixWIaMGMvRZJC0AhkxCtFlsBIRsZzoMlglJriKiktKxSNBl8FqMWCNcC4rX+sUS34dNVm4xYD1KDnPBqo3ojRsE63zm1EKtmzdxvPbURhWIQZWooSq6h04GZYhBtagNK9WDNyJ0rxdlLcblQXqKHAPKgvspcB9qMzzUh5fhdK8/ZRXfwCleT4KbEBlgYMUeAiVBQ5ToHW/hY2U14TKpOaWliOpFBj3h8zg6LHjcf843aWtJ062nSpoL0vGjBGnkSKro6nzzNkuTOrTjVVl585jVJcibCmrxaQ+PdhSdgGT+vRiS1FJMyb1uYg1RZcwqNNlrMlIv+K08f4+DEY04quSq9iWqLvWf73CK36ffz10bvBtOMkT36IHqgdvpty67RgSila05IXfk+/cxVkbvTOoj/uFkeF7qDTQ/7tMFPLuCyNh/Q9woeYhjao/+ztpRhDw4krRCD0JR1HJG6MscKXhVl5voTA0jkrBI0qKsvuCaMSZ8FTaacKt/qSepKEY9sdTT9CNeDo1bUOXz8OdglGMxXnWXZOT9XyC40Ij+Y6ZAdwKXmBRyUvMyXv1GocozYdUHwZ1msGaijcY1eUtllS9w7AO77GioRjjmnxY0CT9FK3CwKvHbD12VPg/YFiX4DjWFH0MYVSvTzKPZYkhjBkQUvnZTH/GkDGTPunnwD8G2zHA4EvDV6RE5Lo86DHq8gS+Rd6xOr4HfuDapODPntnysV+oEhIS/jsc9xvWwm7SqLETuAAAAABJRU5ErkJggg=='
 
+    try:
+        favorite_fonts.remove(' ')
+    except:
+        pass
 
     window = sg.Window('psgfiglet', layout, resizable=True, finalize=True, right_click_menu=['_', ['Edit Me', 'Copy', 'File Location','Exit']], icon=icon, auto_save_location=True)
 
@@ -285,8 +165,7 @@ def make_window():
 def main():
 
     sg.user_settings_filename(filename='psgfiglet.json')
-    upgrade_check()
-    
+
     # sg.theme('Dark red')
     sg.theme(sg.user_settings_get_entry('-theme-', 'dark gray 13'))
     # sg.theme('Dark Gray 13')
@@ -297,6 +176,7 @@ def main():
     selected_font = DEFAULT_FONT
     MULTILINE_FONT = ('Courier', 12)
     fonts = pyfiglet.FigletFont.getFonts()
+    favorite_fonts = sg.user_settings_get_entry('-favorites-', [' '])
 
     while True:  # Event Loop
         event, values = window.read()
@@ -315,7 +195,12 @@ def main():
             sg.execute_editor(__file__)
         elif event == 'File Location':
             sg.popup_scrolled('This Python file is:', __file__)
-        if event in ('Show', '-TEXT-TO-SHOW-', '-FONT-SIZE-', '-FONT-LIST-'):
+        elif event == '-FAVORITES-':
+            selected_font = values['-FAVORITES-']
+            window['-FONT-NAME-'].update(selected_font)
+
+        # Show the new figlet if something changed
+        if event in ('Show', '-TEXT-TO-SHOW-', '-FONT-SIZE-', '-FONT-LIST-', '-FAVORITES-'):
             text = values['-TEXT-TO-SHOW-']
             if text.strip() == '':
                 text = selected_font.strip()
@@ -323,12 +208,21 @@ def main():
             # line_length = window["-OUTPUT-"].get_size()[0] // sg.Text.char_width_in_pixels(MULTILINE_FONT)
             line_length = window["-OUTPUT-"].get_size()[0] // sg.tkinter.font.Font(font=MULTILINE_FONT).measure('A')
             window['-OUTPUT-'].update(draw_text(selected_font, text, line_length).rstrip())
-        if event.startswith('Copy'):
+        elif event.startswith('Copy'):
             sg.clipboard_set(window['-OUTPUT-'].get())
         elif event == 'Change Theme':
             if change_theme(window.current_location()):
                 window.close()
                 window = make_window()
+        elif event == '-ADD TO FAVORITES-':
+            favorite_fonts.append(values['-FONT-NAME-'])
+            favorite_fonts = list(set(favorite_fonts))  # remove dupes
+            sg.user_settings_set_entry('-favorites-', favorite_fonts)
+            window['-FAVORITES-'].update(value=values['-FONT-NAME-'], values=favorite_fonts)
+        elif event == '-CLEAR FAVORITES-':
+            favorite_fonts = []
+            sg.user_settings_set_entry('-favorites-', favorite_fonts)
+            window['-FAVORITES-'].update(values=favorite_fonts)
 
     window.close()
 
