@@ -9,7 +9,7 @@ import sys
 import os
 import pyfiglet
 
-version = '6.0'
+version = '6.0.1'
 __version__ = version.split()[0]
 
 """
@@ -18,7 +18,7 @@ Changelog since last major release
 5.0.0   13-Feb-2024     Initial release with PSG 5     
 6.0     9-Apr-2026      Moved to LGPL3 license    
                         Added "favorites" feature
-
+6.0.1   10-Apr-2026     Made Font list expand/contract with window. Sort favorites.
 """
 
 
@@ -128,19 +128,19 @@ def make_window():
     sg.theme_background_color(sg.theme_input_background_color())
     sg.theme_text_element_background_color(sg.theme_input_background_color())
     column_left = [[sg.Table(headings=['Font Name'], values=fonts, key='-FONT-LIST-',
-                             col_widths=[40], num_rows=30, enable_events=True), sg.VerticalSeparator(pad=((5, 5), 0))]]
+                             col_widths=[40], num_rows=30, enable_events=True, expand_y=True), sg.VerticalSeparator(pad=((5, 5), 0))]]
     try:
         mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', no_scrollbar=True, enable_events=True, focus=True)
     except Exception as e:
         mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', enable_events=True, focus=True)
 
-    column_right = [[sg.Combo(favorite_fonts, default_value=favorite_fonts[0], readonly=True, enable_events=True, k='-FAVORITES-', size=(max([len(f) for f in favorite_fonts]), len(favorite_fonts))), sg.Text("Font Name:", size=(10, 1)), sg.Input(selected_font, size=(12, 1), key='-FONT-NAME-'), sg.B('Add to favorites', k='-ADD TO FAVORITES-'), sg.B('Clear favorites', k='-CLEAR FAVORITES-')],
+    column_right = [[sg.Combo(favorite_fonts, default_value=favorite_fonts[0], readonly=True, enable_events=True, k='-FAVORITES-', size=(max([len(f) for f in favorite_fonts]),30)), sg.Text("Font Name:", size=(10, 1)), sg.Input(selected_font, size=(12, 1), key='-FONT-NAME-'), sg.B('Add to favorites', k='-ADD TO FAVORITES-'), sg.B('Clear favorites', k='-CLEAR FAVORITES-')],
                     [sg.Text("Text:", size=(10, 1)), mline_input, sg.T('Font size for display below'),
                      sg.Combo(list(range(4, 20)), 12, enable_events=True, k='-FONT-SIZE-')],
                     [sg.Multiline(size=(LINE_LENGTH, 20), key='-OUTPUT-', border_width=0, font=MULTILINE_FONT, expand_x=True, expand_y=True, pad=(40, 40), )],
                     [sg.B('Copy to Clipboard'), sg.B('Change Theme')], ]
 
-    layout = [[sg.Column(column_left, expand_y=False, expand_x=False), sg.Column(column_right, expand_x=False, expand_y=False, k='-COL R-')],
+    layout = [[sg.Column(column_left, expand_y=True, expand_x=False), sg.Column(column_right, expand_x=False, expand_y=False, k='-COL R-')],
               [sg.Button('Exit', right_click_menu=sg.MENU_RIGHT_CLICK_DISABLED),
                sg.T('PySimpleGUI ver ' + sg.version.split(' ')[0] + ' tkinter ver ' + sg.tclversion_detailed + '  Python ver ' + sys.version, font='Default 8',
                     pad=(0, 0))], ]
@@ -177,6 +177,7 @@ def main():
     MULTILINE_FONT = ('Courier', 12)
     fonts = pyfiglet.FigletFont.getFonts()
     favorite_fonts = sg.user_settings_get_entry('-favorites-', [' '])
+    favorite_fonts.sort()
 
     while True:  # Event Loop
         event, values = window.read()
@@ -217,6 +218,7 @@ def main():
         elif event == '-ADD TO FAVORITES-':
             favorite_fonts.append(values['-FONT-NAME-'])
             favorite_fonts = list(set(favorite_fonts))  # remove dupes
+            favorite_fonts.sort()
             sg.user_settings_set_entry('-favorites-', favorite_fonts)
             window['-FAVORITES-'].update(value=values['-FONT-NAME-'], values=favorite_fonts)
         elif event == '-CLEAR FAVORITES-':
