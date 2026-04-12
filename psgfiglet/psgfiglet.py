@@ -52,7 +52,7 @@ Changelog since last major release
     It's because a newer parm is used in this code.  It'll all still work just fine with this error.
 
     This demo has an interesting little trick.  If the window is resized, then it
-    will use the new size of the Multiline element to compute the numiber of characters
+    will use the new size of the Multiline element to compute the number of characters
     wide the Multiline has to work with.  This number is passed to the figlet renderer.
 
 
