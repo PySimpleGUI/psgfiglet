@@ -9,7 +9,7 @@ import sys
 import os
 import pyfiglet
 
-version = '6.0.1'
+version = '6.1'
 __version__ = version.split()[0]
 
 """
@@ -19,6 +19,8 @@ Changelog since last major release
 6.0     9-Apr-2026      Moved to LGPL3 license    
                         Added "favorites" feature
 6.0.1   10-Apr-2026     Made Font list expand/contract with window. Sort favorites.
+6.0.2   15-Jun-2026     Added filtering of the font list to make finding fonts much easier.
+6.1     17-Jun-2026     Preparing for PyPI release
 """
 
 
@@ -127,17 +129,17 @@ def make_window():
         favorite_fonts = [' ']
     sg.theme_background_color(sg.theme_input_background_color())
     sg.theme_text_element_background_color(sg.theme_input_background_color())
-    column_left = [[sg.Table(headings=['Font Name'], values=fonts, key='-FONT-LIST-',
-                             col_widths=[40], num_rows=30, enable_events=True, expand_y=True), sg.VerticalSeparator(pad=((5, 5), 0))]]
-    try:
-        mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', no_scrollbar=True, enable_events=True, focus=True)
-    except Exception as e:
-        mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', enable_events=True, focus=True)
+    # column_left = [[sg.Table(headings=['Font Name'], values=fonts, key='-FONT-LIST-',
+    #                          col_widths=[40], num_rows=30, enable_events=True, expand_y=True), sg.VerticalSeparator(pad=((5, 5), 0))],
+    #                [sg.Input(s=20, k='-FILTER-')],[ sg.T('Filter')]]
+    column_left = [[sg.Listbox(values=fonts, key='-FONT-LIST-',s=(30,30), justification='r', enable_events=True, expand_y=True, expand_x=True), sg.VerticalSeparator(pad=((5, 5), 0))],
+                   [sg.Input(s=20, k='-FILTER-', enable_events=True)],[ sg.T('Filter', justification='c', k='-FILTER-')]]
+    mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', enable_events=True, focus=True)
 
     column_right = [[sg.Combo(favorite_fonts, default_value=favorite_fonts[0], readonly=True, enable_events=True, k='-FAVORITES-', size=(max([len(f) for f in favorite_fonts]),30)), sg.Text("Font Name:", size=(10, 1)), sg.Input(selected_font, size=(12, 1), key='-FONT-NAME-'), sg.B('Add to favorites', k='-ADD TO FAVORITES-'), sg.B('Clear favorites', k='-CLEAR FAVORITES-')],
                     [sg.Text("Text:", size=(10, 1)), mline_input, sg.T('Font size for display below'),
                      sg.Combo(list(range(4, 20)), 12, enable_events=True, k='-FONT-SIZE-')],
-                    [sg.Multiline(size=(LINE_LENGTH, 20), key='-OUTPUT-', border_width=0, font=MULTILINE_FONT, expand_x=True, expand_y=True, pad=(40, 40), )],
+                    [sg.Multiline(size=(LINE_LENGTH, 20), key='-OUTPUT-', border_width=0, font=MULTILINE_FONT, expand_x=True, expand_y=True, pad=(40, 40), write_only=True,)],
                     [sg.B('Copy to Clipboard'), sg.B('Change Theme')], ]
 
     layout = [[sg.Column(column_left, expand_y=True, expand_x=False), sg.Column(column_right, expand_x=False, expand_y=False, k='-COL R-')],
@@ -181,7 +183,7 @@ def main():
 
     while True:  # Event Loop
         event, values = window.read()
-        # print(event,values)
+        print(event,values)
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
         if event == '-FONT-SIZE-':
@@ -189,9 +191,10 @@ def main():
             window['-OUTPUT-'].update(font=MULTILINE_FONT)
             window.refresh()
         elif event == '-FONT-LIST-':
-            # first one is the selected, no multi-select allowed.
-            selected_font = fonts[values['-FONT-LIST-'][0]]
+            #first one is the selected, no multi-select allowed.
+            selected_font = values['-FONT-LIST-'][0]
             window['-FONT-NAME-'].update(selected_font)
+
         elif event == 'Edit Me':
             sg.execute_editor(__file__)
         elif event == 'File Location':
@@ -225,7 +228,12 @@ def main():
             favorite_fonts = []
             sg.user_settings_set_entry('-favorites-', favorite_fonts)
             window['-FAVORITES-'].update(values=favorite_fonts)
-
+        elif event == '-FILTER-':
+            if values[event] == '':
+                font_list = fonts
+            else:
+                font_list = list(font for font in fonts if values[event] in font)
+            window['-FONT-LIST-'].update(font_list)
     window.close()
 
 if __name__ == '__main__':
