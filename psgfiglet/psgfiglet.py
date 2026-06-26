@@ -8,7 +8,7 @@ import PySimpleGUI as sg
 import sys
 import pyfiglet
 
-version = '6.1.1'
+version = '6.1.2'
 __version__ = version.split()[0]
 
 """
@@ -24,6 +24,7 @@ Changelog since last major release
                         Made resizing of window work better
                         Added option to prepend "#" onto front of each line with
                         Navigating with arrow keys while in font list will select fonts so that previewing can be done quickly
+6.1.2   25-Jun-2026     Fixed setting an intial font                        
 """
 
 
@@ -174,6 +175,13 @@ def make_window():
     window['-FONT-LIST-'].bind('<Up>', '+UP')
     return window
 
+#   ███╗   ███╗ █████╗ ██╗███╗   ██╗
+#   ████╗ ████║██╔══██╗██║████╗  ██║
+#   ██╔████╔██║███████║██║██╔██╗ ██║
+#   ██║╚██╔╝██║██╔══██║██║██║╚██╗██║
+#   ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║
+#   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+
 
 def main():
 
@@ -228,6 +236,10 @@ def main():
             selected_font = values['-FONT-NAME-']
             if text.strip() == '':
                 text = selected_font.strip()
+            if not selected_font:
+                selected_font = favorite_fonts[0]
+                window['-FONT-NAME-'].update(selected_font)
+                values['-FONT-name-'] = selected_font
             # fancy way of detecting the size of the multiline so the window can be resized
             # line_length = window["-OUTPUT-"].get_size()[0] // sg.Text.char_width_in_pixels(MULTILINE_FONT)
             line_length = window["-OUTPUT-"].get_size()[0] // sg.tkinter.font.Font(font=MULTILINE_FONT).measure('A')
