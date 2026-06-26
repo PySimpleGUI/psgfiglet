@@ -8,7 +8,7 @@ import PySimpleGUI as sg
 import sys
 import pyfiglet
 
-version = '6.1.2'
+version = '6.1.3'
 __version__ = version.split()[0]
 
 """
@@ -24,7 +24,9 @@ Changelog since last major release
                         Made resizing of window work better
                         Added option to prepend "#" onto front of each line with
                         Navigating with arrow keys while in font list will select fonts so that previewing can be done quickly
-6.1.2   25-Jun-2026     Fixed setting an intial font                        
+6.1.2   25-Jun-2026     Fixed setting an initial font                        
+6.1.3   26-Jun-2026     Added use of new method Listbox.get_active_index rather than directly accessing tkinter widget. Included code
+                        to fallback to use widget if the new method isn't found in PySimpleGUI.                        
 """
 
 
@@ -224,7 +226,11 @@ def main():
             window['-FONT-NAME-'].update(selected_font)
             values['-FONT-NAME-'] = selected_font
         elif event.endswith(('+DOWN', '+UP')):      # if using arrow keys in the list of fonts
-            index = window['-FONT-LIST-'].widget.index(sg.tk.ACTIVE)
+            try:
+                index = window['-FONT-LIST-'].get_active_index()              # New method coming to PSG version 6.3
+            except AttributeError:
+                # print('Note - get_active_index not found. Using fallback implementation')
+                index = window['-FONT-LIST-'].widget.index(sg.tk.ACTIVE)
             selected_font = fonts[index]
             window['-FONT-LIST-'].update(set_to_index=index)
             window['-FONT-NAME-'].update(selected_font)
