@@ -225,7 +225,7 @@ def main():
             selected_font = values['-FAVORITES-']
             window['-FONT-NAME-'].update(selected_font)
             values['-FONT-NAME-'] = selected_font
-        elif event.endswith(('+DOWN', '+UP')):      # if using arrow keys in the list of fonts
+        elif event in ('-FONT-LIST-+DOWN', '-FONT-LIST-+UP'):      # if using arrow keys in the list of fonts
             try:
                 index = window['-FONT-LIST-'].get_active_index()              # New method coming to PSG version 6.3
             except AttributeError:
