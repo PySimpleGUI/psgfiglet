@@ -8,7 +8,7 @@ import PySimpleGUI as sg
 import sys
 import pyfiglet
 
-version = '6.1.3'
+version = '6.1.4'
 __version__ = version.split()[0]
 
 """
@@ -27,6 +27,7 @@ Changelog since last major release
 6.1.2   25-Jun-2026     Fixed setting an initial font                        
 6.1.3   26-Jun-2026     Added use of new method Listbox.get_active_index rather than directly accessing tkinter widget. Included code
                         to fallback to use widget if the new method isn't found in PySimpleGUI.                        
+6.1.4   27-Jun-2026     Strip whitespace from figlet to reduce extra blank lines at the end
 """
 
 
@@ -123,7 +124,7 @@ def draw_text(font, text, width=80, prepend_hash=False):
     """Simple wrapper for the main draw function"""
     text = pyfiglet.Figlet(font=font, width=width).renderText(text)
     if prepend_hash:
-        lines = text.split('\n')
+        lines = text.strip().split('\n')
         new_lines = []
         for line in lines:
             new_lines.append(f'#   {line}')
