@@ -11,7 +11,7 @@ def readme():
 
 setuptools.setup(
 name="psgfiglet",
-version="6.1.4",
+version="6.1.5",
 author="PySimpleGUI",
 install_requires=["PySimpleGUI","pyfiglet"],
 description="Create Figlets using a PySimpleGUI GUI and pyfiglet. A PySimpleGUI Demo Program.",
