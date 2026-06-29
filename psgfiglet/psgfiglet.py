@@ -8,7 +8,7 @@ import PySimpleGUI as sg
 import sys
 import pyfiglet
 
-version = '6.1.4'
+version = '6.1.5'
 __version__ = version.split()[0]
 
 """
@@ -28,6 +28,7 @@ Changelog since last major release
 6.1.3   26-Jun-2026     Added use of new method Listbox.get_active_index rather than directly accessing tkinter widget. Included code
                         to fallback to use widget if the new method isn't found in PySimpleGUI.                        
 6.1.4   27-Jun-2026     Strip whitespace from figlet to reduce extra blank lines at the end
+6.1.5   28-Jun-2026     Changed favorites from Combo to Listbox so that it too can be previewed using arrow keys
 """
 
 
@@ -132,32 +133,34 @@ def draw_text(font, text, width=80, prepend_hash=False):
     return text
 
 def make_window():
-    # selected_font = DEFAULT_FONT
     LINE_LENGTH = 100
     MULTILINE_FONT = ('Courier', 12)
     fonts = pyfiglet.FigletFont.getFonts()
     favorite_fonts = sg.user_settings_get_entry('-favorites-', [''])
     last_used_font = sg.user_settings_get_entry('-FONT-NAME-', '')
-    # sg.theme_background_color(sg.theme_input_background_color())
-    # sg.theme_text_element_background_color(sg.theme_input_background_color())
-    # column_left = [[sg.Table(headings=['Font Name'], values=fonts, key='-FONT-LIST-',
-    #                          col_widths=[40], num_rows=30, enable_events=True, expand_y=True), sg.VerticalSeparator(pad=((5, 5), 0))],
-    #                [sg.Input(s=20, k='-FILTER-')],[ sg.T('Filter')]]
-    column_left = [[sg.Listbox(values=fonts, key='-FONT-LIST-',s=(30,30), justification='r', enable_events=True, expand_y=True, expand_x=True), sg.VerticalSeparator(pad=((5, 5), 0))],
+
+    column_left = [[sg.Col([[sg.P(), sg.T('Fonts'),sg.P()],
+                            [sg.Listbox(values=fonts, key='-FONT-LIST-',s=(max([len(f)+1 for f in fonts]),30), justification='r', enable_events=True, ), sg.VerticalSeparator(pad=((5, 5), 0)), sg.P()]], expand_y=True),
+                    sg.Col([[sg.P(), sg.T('Favorites'),sg.P()],
+                            [sg.Listbox(values=favorite_fonts, default_values=[last_used_font], key='-FAVORITES-',s=(max([len(f)+1 for f in favorite_fonts]),30), justification='r', enable_events=True),
+                             sg.VerticalSeparator(pad=((5, 5), 0))]]), sg.P()],
                    [sg.Input(s=20, k='-FILTER-', enable_events=True)],[ sg.T('Filter', justification='c', k='-FILTER-')]]
+
     mline_input = sg.Multiline('PySimpleGUI', size=(40, 3), key='-TEXT-TO-SHOW-', enable_events=True, focus=True)
 
-    column_right = [[sg.Combo(favorite_fonts, default_value=last_used_font, readonly=True, enable_events=True, k='-FAVORITES-', size=(max([len(f) for f in favorite_fonts]),30)), sg.Text("Font Name:", size=(10, 1)), sg.Input(setting=DEFAULT_FONT, size=(12, 1), key='-FONT-NAME-'), sg.B('Add to favorites', k='-ADD TO FAVORITES-'), sg.B('Remove from favorites', k='-REMOVE FROM FAVORITES-'), sg.B('Clear favorites', k='-CLEAR FAVORITES-')],
+    column_right = [[
+                     sg.Text("Font Name:", size=(10, 1)), sg.Input(setting=DEFAULT_FONT, size=(12, 1), key='-FONT-NAME-'), sg.B('Add to favorites', k='-ADD TO FAVORITES-'), sg.B('Remove from favorites', k='-REMOVE FROM FAVORITES-'), sg.B('Clear favorites', k='-CLEAR FAVORITES-')],
                     [sg.Text("Text:"), mline_input,
                      sg.Column([[sg.T('Font size for display below'), sg.Combo(list(range(4, 20)), 12, enable_events=True, k='-FONT-SIZE-')],
                                 [sg.Checkbox('Prepend # onto front of each line', setting=False, k='-PREPEND COMMENT-', enable_events=True)]])],
-                    [sg.Multiline(size=(LINE_LENGTH, 20), key='-OUTPUT-', border_width=0, font=MULTILINE_FONT, expand_x=True, expand_y=True, pad=(40, 40), write_only=True,)],
+                    [sg.Multiline(size=(LINE_LENGTH, 20), key='-OUTPUT-', border_width=0, font=MULTILINE_FONT, pad=(40, 40), write_only=True, )],
                     [sg.B('Copy to Clipboard'), sg.B('Change Theme')], ]
 
-    layout = [[sg.Column(column_left, expand_y=False, expand_x=False), sg.Column(column_right, expand_x=True, expand_y=True, k='-COL R-')],
+    layout = [[sg.Column(column_left, k='-COL L-'), sg.Column(column_right, k='-COL R-')],
               [sg.Button('Exit', right_click_menu=sg.MENU_RIGHT_CLICK_DISABLED),
                sg.T('PySimpleGUI ver ' + sg.version.split(' ')[0] + ' tkinter ver ' + sg.tclversion_detailed + '  Python ver ' + sys.version, font='Default 8',
                     pad=(0, 0))], ]
+
     layout[-1].append(sg.Sizegrip())
 
     icon = b'iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAH+UExURf/YAL2gAJB5AMysAP7XAG5dAAAAAAcFAEM4AHxpAPHMALKWACUfABQQAJiAAH9rAEA2AMurAO7JAFJFAMqrACQeACMdALWZAAsJAPbQAKGIAMipAKKJAJqCALebAGtaAAoIAD0zAG9eABgUAEs/AFVIAJV+AHhlAFFEABwXACchAMeoAOC9AKaMAGFSAOzHAAQDAPvUALGVAFlLANCwAN68ADAoAOfDAIl0ACojALOXALqdAGlYALibADcuAJZ/AJ6FAHZjANOyAFNGAA8MADEpAEQ5AAkHAHpnANi2AKyRAAYFAPzVAIBsAEo+AFBDAI95ABANANa1ACAbAPTOAPLMAOTBAE1BACwlABsWACskAEI3AFpMAHFfAIhzAMGjAGVVAAEAAEE3AGNTAKuQAPjSAH1pAB4ZAPPNAK2SAMCiAMWmAN27AIt1APXPACghACEbAL+hAA4LAFRHAHdkAJuDAMmqACYgAEk9AFxNAIFtAI54AI13AAwKAKqQAE9CANKxAKeNAObCAK6TAGxbANy6AHtoAMSmAD81AF1OANW0APnSAOPAAGZWAKmPAO3IAOXBAFhKADoxAOK/AO/KAGBRAIx2ABYSABEOAAUEAJJ7AGRUAHBeAHJgAJyEALmcAFdJAIZxANGxAKOKAAMCADsxACIcALaaAL6gAOG+AFD17/gAAAAJcEhZcwAADsMAAA7DAcdvqGQAAALDSURBVFhH7df5W0xhFAfwS3VHUkpMqQYZ00Ixxq5FIYxMaLFEUhTJMhGFyDItpkRMdtm3/9Lcc78z7oy7vvc+jx/M55fe855zvs/TU93ucAkJ/8acuUk4WSI5hed527zU+ajNSlsQzhOkZ+DGnIWIE2Rm4ZLdomxkibJxzWzxEiSBHfescnIRFLUUHTZ5SJHIR4tJAUKkHOixWIaMGMvRZJC0AhkxCtFlsBIRsZzoMlglJriKiktKxSNBl8FqMWCNcC4rX+sUS34dNVm4xYD1KDnPBqo3ojRsE63zm1EKtmzdxvPbURhWIQZWooSq6h04GZYhBtagNK9WDNyJ0rxdlLcblQXqKHAPKgvspcB9qMzzUh5fhdK8/ZRXfwCleT4KbEBlgYMUeAiVBQ5ToHW/hY2U14TKpOaWliOpFBj3h8zg6LHjcf843aWtJ062nSpoL0vGjBGnkSKro6nzzNkuTOrTjVVl585jVJcibCmrxaQ+PdhSdgGT+vRiS1FJMyb1uYg1RZcwqNNlrMlIv+K08f4+DEY04quSq9iWqLvWf73CK36ffz10bvBtOMkT36IHqgdvpty67RgSila05IXfk+/cxVkbvTOoj/uFkeF7qDTQ/7tMFPLuCyNh/Q9woeYhjao/+ztpRhDw4krRCD0JR1HJG6MscKXhVl5voTA0jkrBI0qKsvuCaMSZ8FTaacKt/qSepKEY9sdTT9CNeDo1bUOXz8OdglGMxXnWXZOT9XyC40Ij+Y6ZAdwKXmBRyUvMyXv1GocozYdUHwZ1msGaijcY1eUtllS9w7AO77GioRjjmnxY0CT9FK3CwKvHbD12VPg/YFiX4DjWFH0MYVSvTzKPZYkhjBkQUvnZTH/GkDGTPunnwD8G2zHA4EvDV6RE5Lo86DHq8gS+Rd6xOr4HfuDapODPntnysV+oEhIS/jsc9xvWwm7SqLETuAAAAABJRU5ErkJggg=='
@@ -168,14 +171,22 @@ def make_window():
 
     window.settings_restore()
 
+    window['-OUTPUT-'].expand(True, True, True)
     window['-COL R-'].expand(True, True, True)
-    # window['-OUTPUT-'].expand(True, True, False)
-    # window['-FONT-LIST-'].expand(False, False, False)
+    # window['-COL L-'].expand(False, True, True)
+    # window['-COL R-'].expand_row_frame(True, True, True)
+    # window['-OUTPUT-'].expand_row_frame(True, True, True)
+    # window['-FONT-LIST-'].expand(True, True, True)
+    # window['-FONT-LIST-'].expand_row_frame(True, True, True)
+    # window['-COL L-'].expand(False, True, False)
+    # window['-COL L-'].expand_row_frame(True, True, True)
     initial_font = window['-FONT-NAME-'].get()
     initial_font = DEFAULT_FONT if not initial_font else initial_font   # if blank font, then use default
     window['-OUTPUT-'].update(draw_text(initial_font, 'PySimpleGUI').strip())
     window['-FONT-LIST-'].bind('<Down>', '+DOWN')
     window['-FONT-LIST-'].bind('<Up>', '+UP')
+    window['-FAVORITES-'].bind('<Down>', '+DOWN')
+    window['-FAVORITES-'].bind('<Up>', '+UP')
     return window
 
 #   ███╗   ███╗ █████╗ ██╗███╗   ██╗
@@ -193,9 +204,6 @@ def main():
     # sg.theme('Dark red')
     sg.theme(sg.user_settings_get_entry('-theme-', 'dark gray 13'))
     # sg.theme('Dark Gray 13')
-    # sg.theme_input_background_color('#36393F')
-    # sg.theme_background_color('#36393F')
-    # sg.theme_input_text_color('white')
     window = make_window()
     MULTILINE_FONT = ('Courier', 12)
     fonts = pyfiglet.FigletFont.getFonts()
@@ -213,19 +221,19 @@ def main():
             MULTILINE_FONT = (MULTILINE_FONT[0], values['-FONT-SIZE-'])
             window['-OUTPUT-'].update(font=MULTILINE_FONT)
             window.refresh()
-        elif event == '-FONT-LIST-':
+        elif event in ('-FONT-LIST-', '-FAVORITES-'):
             #first one is the selected, no multi-select allowed.
-            selected_font = values['-FONT-LIST-'][0]
+            selected_font = values[event][0]
             window['-FONT-NAME-'].update(selected_font)
             values['-FONT-NAME-'] = selected_font
         elif event == 'Edit Me':
             sg.execute_editor(__file__)
         elif event == 'File Location':
             sg.popup_scrolled('This Python file is:', __file__)
-        elif event == '-FAVORITES-':
-            selected_font = values['-FAVORITES-']
-            window['-FONT-NAME-'].update(selected_font)
-            values['-FONT-NAME-'] = selected_font
+        # elif event == '-FAVORITES-':
+        #     selected_font = values['-FAVORITES-']
+        #     window['-FONT-NAME-'].update(selected_font)
+        #     values['-FONT-NAME-'] = selected_font
         elif event in ('-FONT-LIST-+DOWN', '-FONT-LIST-+UP'):      # if using arrow keys in the list of fonts
             try:
                 index = window['-FONT-LIST-'].get_active_index()              # New method coming to PSG version 6.3
@@ -236,9 +244,18 @@ def main():
             window['-FONT-LIST-'].update(set_to_index=index)
             window['-FONT-NAME-'].update(selected_font)
             values['-FONT-NAME-'] = selected_font
-
+        elif event in ('-FAVORITES-+DOWN', '-FAVORITES-+UP'):      # if using arrow keys in the list of fonts
+            try:
+                index = window['-FAVORITES-'].get_active_index()              # New method coming to PSG version 6.3
+            except AttributeError:
+                # print('Note - get_active_index not found. Using fallback implementation')
+                index = window['-FAVORITES-'].widget.index(sg.tk.ACTIVE)
+            selected_font = favorite_fonts[index]
+            window['-FAVORITES-'].update(set_to_index=index)
+            window['-FONT-NAME-'].update(selected_font)
+            values['-FONT-NAME-'] = selected_font
         # Show the new figlet if something changed
-        if event in ('Show', '-TEXT-TO-SHOW-', '-FONT-SIZE-', '-FONT-LIST-', '-FAVORITES-', '-PREPEND COMMENT-', '-FONT-LIST-+UP', '-FONT-LIST-+DOWN'):
+        if event in ('Show', '-TEXT-TO-SHOW-', '-FONT-SIZE-', '-FONT-LIST-', '-FAVORITES-', '-FAVORITES-+UP', '-FAVORITES-+DOWN', '-PREPEND COMMENT-', '-FONT-LIST-+UP', '-FONT-LIST-+DOWN'):
             text = values['-TEXT-TO-SHOW-']
             selected_font = values['-FONT-NAME-']
             if text.strip() == '':
@@ -258,16 +275,18 @@ def main():
                 window.close()
                 window = make_window()
         elif event == '-ADD TO FAVORITES-':
-            favorite_fonts.append(values['-FONT-NAME-'])
+            current_font = values['-FONT-NAME-']
+            favorite_fonts.append(current_font)
             favorite_fonts = list(set(favorite_fonts))  # remove dupes
             favorite_fonts.sort()
             sg.user_settings_set_entry('-favorites-', favorite_fonts)
-            window['-FAVORITES-'].update(value=values['-FONT-NAME-'], values=favorite_fonts)
+            window['-FAVORITES-'].update(values=favorite_fonts, set_to_index=favorite_fonts.index(current_font))
         elif event == '-REMOVE FROM FAVORITES-':
-            favorite_fonts.remove(values['-FONT-NAME-'])
+            current_font = values['-FONT-NAME-']
+            favorite_fonts.remove(current_font)
             sg.user_settings_set_entry('-favorites-', favorite_fonts)
-            value = favorite_fonts[0] if len(favorite_fonts) else ''
-            window['-FAVORITES-'].update(value=value, values=favorite_fonts)
+            # value = favorite_fonts[0] if len(favorite_fonts) else ''
+            window['-FAVORITES-'].update(values=favorite_fonts)
         elif event == '-CLEAR FAVORITES-':
             favorite_fonts = []
             sg.user_settings_set_entry('-favorites-', favorite_fonts)
