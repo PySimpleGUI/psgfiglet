@@ -173,13 +173,6 @@ def make_window():
 
     window['-OUTPUT-'].expand(True, True, True)
     window['-COL R-'].expand(True, True, True)
-    # window['-COL L-'].expand(False, True, True)
-    # window['-COL R-'].expand_row_frame(True, True, True)
-    # window['-OUTPUT-'].expand_row_frame(True, True, True)
-    # window['-FONT-LIST-'].expand(True, True, True)
-    # window['-FONT-LIST-'].expand_row_frame(True, True, True)
-    # window['-COL L-'].expand(False, True, False)
-    # window['-COL L-'].expand_row_frame(True, True, True)
     initial_font = window['-FONT-NAME-'].get()
     initial_font = DEFAULT_FONT if not initial_font else initial_font   # if blank font, then use default
     window['-OUTPUT-'].update(draw_text(initial_font, 'PySimpleGUI').strip())
