@@ -8,7 +8,7 @@ import PySimpleGUI as sg
 import sys
 import pyfiglet
 
-version = '6.1.5'
+version = '6.1.6'
 __version__ = version.split()[0]
 
 """
@@ -29,6 +29,7 @@ Changelog since last major release
                         to fallback to use widget if the new method isn't found in PySimpleGUI.                        
 6.1.4   27-Jun-2026     Strip whitespace from figlet to reduce extra blank lines at the end
 6.1.5   28-Jun-2026     Changed favorites from Combo to Listbox so that it too can be previewed using arrow keys
+6.1.6   26-Jul-2026     Fixed bug that was incorrectly removing spaces in the prepend feature
 """
 
 
@@ -125,10 +126,11 @@ def draw_text(font, text, width=80, prepend_hash=False):
     """Simple wrapper for the main draw function"""
     text = pyfiglet.Figlet(font=font, width=width).renderText(text)
     if prepend_hash:
-        lines = text.strip().split('\n')
+        lines = text.rstrip().split('\n')
         new_lines = []
         for line in lines:
-            new_lines.append(f'#   {line}')
+            if len(line.rstrip()):                  # if not a blank line
+                new_lines.append(f'#  {line}')
         text = '\n'.join(new_lines)
     return text
 
